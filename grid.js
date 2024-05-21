@@ -21,7 +21,7 @@ class Grid {
         else this.arr[y][x] = 0; 
     }
 
-    getVisibility(y, x) {
+    isVisible(y, x) {
         return this.visibility[y][x]; 
     }
 
@@ -29,7 +29,7 @@ class Grid {
         this.visibility[y][x] = true; 
     }
 
-    getVisibility(y, x) {
+    isMarked(y, x) {
         return this.marked[y][x]; 
     }
 
@@ -37,16 +37,20 @@ class Grid {
         this.marked[y][x] = !this.marked[y][x]; 
     }
 
+    gameOver(){
+        this.endOfGame = true; 
+    }
+
     getStringForIndex(i, j){
         if(this.marked[i][j]){
             return this.endOfGame ? (this.arr[i][j] === -1 ? "\u2713" : "\u2715") : "\u2691" ;
-        }else if(this.visibility[i][j]){
+        }else if(this.visibility[i][j] || this.endOfGame){
             if(this.arr[i][j] === -1)
                 return "\u2022";
             else if(this.arr[i][j] === 0)
                 return " ";
             else 
-                return `${this.arr[i][j]}`;
+                return this.endOfGame ? "-" : `${this.arr[i][j]}`;
         } 
         return "-"; 
     }

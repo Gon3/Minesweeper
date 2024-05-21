@@ -15,6 +15,7 @@ class Game {
             this.marks = 99;
         } else 
             console.log("Invalid value for difficulty added"); 
+        this.setUpBombs();
     }
 
     alterBombNumbers(index) {
@@ -37,33 +38,73 @@ class Game {
         }
     }
 
-    setUp(coord) { //put the bombs in the grid and set up the numbers
+    setUpBombs() { //put the bombs in the grid and set up the numbers
         let emptySquares = [...Array(this.grid.x * this.grid.y).keys()];
         let bombs = this.marks; 
         while(bombs !== 0){
             let index = Math.floor(Math.random() * emptySquares.length);
             let bombIndex = emptySquares[index]; 
             this.grid.addOrRemoveBomb(Math.floor(bombIndex/this.grid.x), bombIndex%this.grid.x);
-            this.alterBombNumbers(bombIndex); 
+            //this.alterBombNumbers(bombIndex); 
             emptySquares.splice(index, 1); 
             bombs--; 
         }
     }
 
-    coordToIndex(coord){
-        return {x: coord.charCodeAt(0) - 65 , y: Number(coord.substring(1)) - 1}; 
+    fullySetUpGame(index) {
+        //all squares containing bombs
+        let bombSquares = [...Array(this.grid.x * this.grid.y).keys()].filter(v => this.grid.getIndex(Math.floor(v/this.grid.x), v%this.grid.x) === -1); 
+        //square clicked on + surrounding squares
+        let cVal = (index.y * this.grid.x) + index.x;
+        let excludedSquares = [cVal, cVal + 1, cVal-1, cVal + this.grid.x, cVal - this.grid.x, cVal + this.grid.x +1, cVal + this.grid.x-1, cVal - this.grid.x +1, 
+            cVal - this.grid.x -1].filter(v => v >= 0 && v < this.grid.x * this.grid.y);
+        if(!excludedSquares.every(sq => this.grid.getIndex(Math.floor(sq/this.grid.x), sq%this.grid.x) !== -1)){//clicked on bomb
+            let leftmost = 0;
+            let removing = excludedSquares.filter(v => bombSquares.indexOf(v) !== -1); //bombs to remove
+            removing.forEach(square => {
+                //remove square
+                this.grid.addOrRemoveBomb(Math.floor(square/this.grid.x), square%this.grid.x, true); 
+                bombSquares.splice(bombSquares.indexOf(square), 1); 
+                //put at empty square at leftmost corner
+                while(excludedSquares.indexOf(leftmost) !== -1 || this.grid.getIndex(Math.floor(leftmost/this.grid.x), leftmost%this.grid.x) === -1) leftmost++; 
+                this.grid.addOrRemoveBomb(Math.floor(leftmost/this.grid.x), leftmost%this.grid.x);
+                bombSquares.push(leftmost); 
+            });
+        }
+        //populate squares with numbers
+        bombSquares.forEach((square) => {
+            this.alterBombNumbers(square); 
+        });
     }
 
-    handleSelection(coord) {//returns true is selection successful, false otherwise
+    handleSelection(coord) {//returns 0 on failed click, 1 on successful click, and 2 on gameover
+        let index = {x: coord.charCodeAt(0) - 65 , y: Number(coord.substring(1)) - 1}; 
+        if(this.firstMove) //handle first click if there's bomb
+            this.fullySetUpGame(index); 
+        //click on a bomb -> game over
+        if(this.grid.isVisible(index.y, index.x) || this.grid.isMarked(index.y, index.x)){ //nothing to do for visible/marked square
+            return 0; 
+        }
+        if(this.grid.getIndex(index.y, index.x) === -1){ //if you click bomb, game over
+            this.grid.gameOver();
+            return 2;
+        } 
+        //click on empty square/numbered square -> start algo 
         
     }
 
-    handleMark(coord) {//returns true is marking is successful, false otherwise
-
+    handleMark(coord) {//returns true if marking is successful, false otherwise
+        let index = {x: coord.charCodeAt(0) - 65 , y: Number(coord.substring(1)) - 1}; 
+        if(this.grid.isVisible(index.y, index.x))
+            return false; 
+        if(this.grid.isMarked(index.y, index.x)) this.marks++; 
+        else this.marks--;
+        this.grid.toggleMarkIndex(index.y, index.x);
+        return true; 
     }
 
     toString(){
-        return `${this.grid}`; 
+        return `Marks: ${this.marks}\n${this.grid}`; 
     }
 }
 

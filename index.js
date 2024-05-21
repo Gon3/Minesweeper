@@ -1,6 +1,7 @@
 const {Game} = require("./game");
 
 let gameTest = new Game();
-gameTest.setUp();
+console.log(`before:\n${gameTest}`);
+gameTest.handleSelection("E5");
 
 console.log(`${gameTest}`); 
