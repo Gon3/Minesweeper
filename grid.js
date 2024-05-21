@@ -3,7 +3,7 @@ class Grid {
         this.x = x;
         this.y = y; 
         this.arr = Array.from({length: y}, e => Array(x).fill(0));
-        this.visibility = Array.from({length: y}, e => Array(x).fill(true));
+        this.visibility = Array.from({length: y}, e => Array(x).fill(false));
         this.marked = Array.from({length: y}, e => Array(x).fill(false));
         this.endOfGame = false;  
     }
@@ -25,7 +25,7 @@ class Grid {
         return this.visibility[y][x]; 
     }
 
-    makeIndexVisible(y, x){
+    makeVisible(y, x){
         this.visibility[y][x] = true; 
     }
 
@@ -48,11 +48,11 @@ class Grid {
             if(this.arr[i][j] === -1)
                 return "\u2022";
             else if(this.arr[i][j] === 0)
-                return " ";
+                return "\u25A1";
             else 
-                return this.endOfGame ? "-" : `${this.arr[i][j]}`;
+                return this.endOfGame ? "\u25A0" : `${this.arr[i][j]}`;
         } 
-        return "-"; 
+        return "\u25A0"; 
     }
 
     toString(){

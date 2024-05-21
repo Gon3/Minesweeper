@@ -77,6 +77,17 @@ class Game {
         });
     }
 
+    visitEmptySquares(y, x){ //bfs algo to find empty squares
+        this.grid.makeVisible(y, x); 
+        if(this.grid.getIndex(y, x) !== 0)
+            return; 
+        let dirs = [[y, x-1], [y, x+1], [y-1, x], [y+1, x], [y+1, x-1], [y+1, x+1], [y-1, x+1], [y-1, x-1]].filter(
+            v => v[0] >= 0 && v[0] < this.grid.y && v[1] >= 0 && v[1] < this.grid.x && !this.grid.isVisible(v[0], v[1])); 
+        dirs.forEach(coord => {
+            this.visitEmptySquares(coord[0], coord[1]);
+        });  
+    }
+
     handleSelection(coord) {//returns 0 on failed click, 1 on successful click, and 2 on gameover
         let index = {x: coord.charCodeAt(0) - 65 , y: Number(coord.substring(1)) - 1}; 
         if(this.firstMove) //handle first click if there's bomb
@@ -89,8 +100,10 @@ class Game {
             this.grid.gameOver();
             return 2;
         } 
-        //click on empty square/numbered square -> start algo 
-        
+
+        //click on empty square/numbered square -> start bfs algo 
+        this.visitEmptySquares(index.y, index.x); 
+        return 1; 
     }
 
     handleMark(coord) {//returns true if marking is successful, false otherwise
