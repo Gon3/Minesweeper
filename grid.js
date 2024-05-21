@@ -1,9 +1,9 @@
 class Grid {
-    constructor (x, y, initialValue = 0){
+    constructor (x, y){
         this.x = x;
         this.y = y; 
-        this.arr = Array.from({length: y}, e => Array(x).fill(initialValue));
-        this.visibility = Array.from({length: y}, e => Array(x).fill(false));
+        this.arr = Array.from({length: y}, e => Array(x).fill(0));
+        this.visibility = Array.from({length: y}, e => Array(x).fill(true));
         this.marked = Array.from({length: y}, e => Array(x).fill(false));
         this.endOfGame = false;  
     }
@@ -12,8 +12,13 @@ class Grid {
         return this.arr[y][x];
     }
 
-    setIndex(y, x, val) {
-        this.arr[y][x] = val; 
+    increaseIndex(y, x) {
+        this.arr[y][x]++;
+    }
+
+    addOrRemoveBomb(y, x, remove=false) {
+        if(!remove) this.arr[y][x] = -1; 
+        else this.arr[y][x] = 0; 
     }
 
     getVisibility(y, x) {
@@ -37,7 +42,7 @@ class Grid {
             return this.endOfGame ? (this.arr[i][j] === -1 ? "\u2713" : "\u2715") : "\u2691" ;
         }else if(this.visibility[i][j]){
             if(this.arr[i][j] === -1)
-                return "\u1FA3";
+                return "\u2022";
             else if(this.arr[i][j] === 0)
                 return " ";
             else 

@@ -1,6 +1,6 @@
-const {Grid} = require("./grid");
+const {Game} = require("./game");
 
-let gridTest = new Grid(10, 8);
+let gameTest = new Game();
+gameTest.setUp();
 
-gridTest.toggleMarkIndex(4,4);
-console.log(`${gridTest}`); 
+console.log(`${gameTest}`); 
