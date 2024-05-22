@@ -2,19 +2,20 @@ const {Grid} = require("./grid");
 
 class Game {
 
-    constructor(difficulty = "easy"){
+    constructor(difficulty = "E"){
         this.firstMove = true; 
-        if(difficulty === "easy"){
+        if(difficulty === "E"){ //easy mode
             this.grid = new Grid(10, 8);
             this.marks = 10;
-        } else if (difficulty === "medium"){
+        } else if (difficulty === "M"){ //medium mode
             this.grid = new Grid(18, 14);
             this.marks = 40;
-        } else if(difficulty === "hard"){
+        } else if(difficulty === "H"){ //hard mode
             this.grid = new Grid(24, 20);
             this.marks = 99;
         } else 
             console.log("Invalid value for difficulty added"); 
+        this.bombs = this.marks; 
         this.setUpBombs();
     }
 
@@ -40,14 +41,14 @@ class Game {
 
     setUpBombs() { //put the bombs in the grid and set up the numbers
         let emptySquares = [...Array(this.grid.x * this.grid.y).keys()];
-        let bombs = this.marks; 
-        while(bombs !== 0){
+        let bombsToSet = this.marks; 
+        while(bombsToSet !== 0){
             let index = Math.floor(Math.random() * emptySquares.length);
             let bombIndex = emptySquares[index]; 
             this.grid.addOrRemoveBomb(Math.floor(bombIndex/this.grid.x), bombIndex%this.grid.x);
             //this.alterBombNumbers(bombIndex); 
             emptySquares.splice(index, 1); 
-            bombs--; 
+            bombsToSet--; 
         }
     }
 
@@ -82,16 +83,28 @@ class Game {
         if(this.grid.getIndex(y, x) !== 0)
             return; 
         let dirs = [[y, x-1], [y, x+1], [y-1, x], [y+1, x], [y+1, x-1], [y+1, x+1], [y-1, x+1], [y-1, x-1]].filter(
-            v => v[0] >= 0 && v[0] < this.grid.y && v[1] >= 0 && v[1] < this.grid.x && !this.grid.isVisible(v[0], v[1])); 
+            v => v[0] >= 0 && v[0] < this.grid.y && v[1] >= 0 && v[1] < this.grid.x && !this.grid.isVisible(v[0], v[1]) 
+            && !this.grid.isMarked(v[0], v[1])); 
         dirs.forEach(coord => {
             this.visitEmptySquares(coord[0], coord[1]);
         });  
     }
 
-    handleSelection(coord) {//returns 0 on failed click, 1 on successful click, and 2 on gameover
+    validateInput(coord){ //validates coord input 
+        if(coord.search(/[A-Z][0-9]+/) === -1)
+            return false; 
         let index = {x: coord.charCodeAt(0) - 65 , y: Number(coord.substring(1)) - 1}; 
-        if(this.firstMove) //handle first click if there's bomb
+        return index.x >= 0 && index.x < this.grid.x && index.y >= 0 && index.y < this.grid.y;
+    }
+
+    handleSelection(coord) {//returns 0 on failed click, 1 on successful click, 2 on failed gameover, and 3 on successful game over
+        let index = {x: coord.charCodeAt(0) - 65 , y: Number(coord.substring(1)) - 1}; 
+        if(this.firstMove){//handle first click 
+            this.grid.removeAllMarks();
+            this.marks = this.bombs;
             this.fullySetUpGame(index); 
+            this.firstMove = false; 
+        } 
         //click on a bomb -> game over
         if(this.grid.isVisible(index.y, index.x) || this.grid.isMarked(index.y, index.x)){ //nothing to do for visible/marked square
             return 0; 
@@ -103,6 +116,14 @@ class Game {
 
         //click on empty square/numbered square -> start bfs algo 
         this.visitEmptySquares(index.y, index.x); 
+
+        //successful game over condition
+        let uncoveredSquares = [...Array(this.grid.x * this.grid.y).keys()].filter(v => this.grid.isVisible(Math.floor(v/this.grid.x), v%this.grid.x));
+        if(uncoveredSquares.length === ((this.grid.x * this.grid.y) - this.bombs)){ //all squares except bombs uncovered
+            this.grid.gameOver(); 
+            return 3; 
+        } 
+
         return 1; 
     }
 
@@ -117,7 +138,7 @@ class Game {
     }
 
     toString(){
-        return `Marks: ${this.marks}\n${this.grid}`; 
+        return `${this.grid.endOfGame ? "Final Board:" : `Marks: ${this.marks}`}\n${this.grid}`; 
     }
 }
 

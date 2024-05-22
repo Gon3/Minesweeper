@@ -8,6 +8,10 @@ class Grid {
         this.endOfGame = false;  
     }
 
+    removeAllMarks(){
+        this.marked = Array.from({length: this.y}, e => Array(this.x).fill(false));
+    }
+
     getIndex(y, x) {
         return this.arr[y][x];
     }
@@ -48,31 +52,31 @@ class Grid {
             if(this.arr[i][j] === -1)
                 return "\u2022";
             else if(this.arr[i][j] === 0)
-                return "\u25A1";
+                return this.visibility[i][j] ? "\u25A1" : "\u25A0";
             else 
-                return this.endOfGame ? "\u25A0" : `${this.arr[i][j]}`;
+                return this.endOfGame && !this.visibility[i][j] ? "\u25A0" : `${this.arr[i][j]}`;
         } 
         return "\u25A0"; 
     }
 
     toString(){
-        let gridString = "    ";
+        let gridString = "    " + (this.y >= 10 ? " " : "");
         for(let c = 0; c < this.x; c++){
             gridString += String.fromCharCode(65+c) + " ";
         }
-        gridString += "\n  \u250D"; 
+        gridString += `\n  ${(this.y >= 10 ? " " : "")}\u250D`; 
         for(let j = 0; j < (this.x * 2)+1; j++){
             gridString += "\u2500"; 
         }
         gridString += "\u2511\n";
         for(let i = 0; i < this.y; i++){
-            gridString += `${i+1} \u2502 `;
+            gridString += `${i+1} ${(this.y >= 10) && (i+1 < 10)  ? " ":""}\u2502 `;
             for(let j = 0; j < this.x; j++){
                 gridString += this.getStringForIndex(i,j) + ((j === this.x-1) ? "" : " "); 
             }
             gridString += " \u2502\n"; 
         }
-        gridString += "  \u2515";
+        gridString += (this.y >= 10 ? " " : "") + "  \u2515";
         for(let j = 0; j < (this.x * 2)+1; j++){
             gridString += "\u2500"; 
         }
